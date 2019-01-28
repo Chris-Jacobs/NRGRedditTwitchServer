@@ -50,6 +50,8 @@ def live():
         
 def messageDiscord(newStreams):
     for stream in newStreams:
+        if stream.strip() == "":
+            continue
         msg  = "{stream} is now live! \n http://twitch.tv/{stream}".format(stream = stream)
         r = requests.post(discordURL, json = {"content": msg})
 def getStreams():
