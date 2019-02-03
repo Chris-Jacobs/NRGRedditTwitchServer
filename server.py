@@ -13,6 +13,10 @@ sleepTime = 15
 discordURL = streams.keys['StreamsWebhook']
 oldStreams = []
 
+@app.route('/info', methods = ['GET'])
+def info():
+    user = request.args.get('user')
+    return json.dumps(streams.getStream(user))
 @app.route("/follow", methods = ['GET', 'POST'])
 def follow():
     if request.method == 'GET':
@@ -59,7 +63,11 @@ def getStreams():
     oldStreams = streams.getLive(streams.getFollows())
     while True:
         sleep(sleepTime)
-        newStreams = streams.getLive(streams.getFollows())
+        try:
+            newStreams = streams.getLive(streams.getFollows())
+        except Exception:
+            print('error getting new streams')
+            newStreams = oldStreams
         newLiveStreams = compare(oldStreams, newStreams)
         oldStreams = newStreams
         messageDiscord(newLiveStreams)

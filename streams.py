@@ -68,6 +68,14 @@ def getFollows(name = False):
 
 def getLive(follows):
     url = base_url + 'streams'
-    params = [ ('user_id', str(user_id)) for user_id in follows ]
+    params = [('user_id', str(user_id)) for user_id in follows]
     response = requests.get(url, params=params, headers=headers).json()
     return response['data']
+
+def getStream(username):
+    url = base_url + 'streams'
+    params =  {'user_login': username}
+    response = requests.get(url, params=params, headers=headers)
+    print(response.status_code)
+    return response.json()['data']
+
