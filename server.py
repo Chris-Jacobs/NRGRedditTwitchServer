@@ -81,7 +81,7 @@ def compare(oldStreams, newStreams):
 def getUsernames(streamData):
     s = set()
     for stream in streamData:
-        s.add(stream['user_name'])
+        s.add(streams.getUsername(stream['user_id']))
     return s
 
 t = Thread(target=getStreams, daemon=True)
