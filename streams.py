@@ -37,6 +37,10 @@ def getID(username):
     response = requests.get(url, headers=headers).json()
     id = response['users'][0]['_id']
     return id
+def getUsername(id):
+    url = "https://api.twitch.tv/kraken/users/{id}".format(id = id)
+    response = requests.get(url, headers=headers).json()
+    return response['name']
 def follow(username):
     url = "https://api.twitch.tv/kraken/users/{userid}/follows/channels/{channelid}".format(userid = twitchId, channelid = getID(username))
     followHeaders = headers.copy()

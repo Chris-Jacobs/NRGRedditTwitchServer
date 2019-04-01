@@ -5,6 +5,7 @@ import json
 from threading import Thread
 from time import sleep
 import requests
+import datetime
 app = Flask(__name__)
 
 
@@ -43,20 +44,20 @@ def live():
     for stream in oldStreams:
         data = {}
         data['game'] = streams.lookupGame(stream['game_id'])
-        data['name'] = stream['user_name']
+        data['name'] = streams.getUsername(stream['user_id'])
         data['title'] = stream['title']
         data['viewers'] = stream['viewer_count']
         totalViewers += int(data['viewers'])
         liveStreams.append(data)
     print(liveStreams)
     liveStreams.sort(key = lambda s: int(s['viewers']), reverse = True)
-    return json.dumps({"streams": liveStreams, "total_viewers": totalViewers})
+    return json.dumps({"streams": liveStreams, "total_viewers": totalViewers, "time": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")})
         
 def messageDiscord(newStreams):
     for stream in newStreams:
         if stream.strip() == "":
             continue
-        msg  = "{stream} is now live! \n http://twitch.tv/{stream}".format(stream = stream)
+        msg  = "{stream} is now live!\nhttp://twitch.tv/{stream}".format(stream = stream)
         r = requests.post(discordURL, json = {"content": msg})
 def getStreams():
     global oldStreams 
