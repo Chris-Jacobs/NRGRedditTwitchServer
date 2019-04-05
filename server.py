@@ -13,7 +13,7 @@ app = Flask(__name__)
 sleepTime = 15
 discordURL = streams.keys['StreamsWebhook']
 oldStreams = []
-
+lastUpdated = None
 @app.route('/info', methods = ['GET'])
 def info():
     user = request.args.get('user')
@@ -51,17 +51,18 @@ def live():
         liveStreams.append(data)
     print(liveStreams)
     liveStreams.sort(key = lambda s: int(s['viewers']), reverse = True)
-    return json.dumps({"streams": liveStreams, "total_viewers": totalViewers, "time": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")})
+    return json.dumps({"streams": liveStreams, "total_viewers": totalViewers, "time": lastUpdated.strftime("%Y-%m-%d %H:%M:%S")})
         
 def messageDiscord(newStreams):
     for stream in newStreams:
         if stream.strip() == "":
             continue
         msg  = "{stream} is now live!\nhttp://twitch.tv/{stream}".format(stream = stream)
-        r = requests.post(discordURL, json = {"content": msg})
+        requests.post(discordURL, json = {"content": msg})
 def getStreams():
-    global oldStreams 
+    global oldStreams, lastUpdated
     oldStreams = streams.getLive(streams.getFollows())
+    lastUpdated = datetime.datetime.now()
     while True:
         sleep(sleepTime)
         try:
@@ -71,6 +72,7 @@ def getStreams():
             newStreams = oldStreams
         newLiveStreams = compare(oldStreams, newStreams)
         oldStreams = newStreams
+        lastUpdated = datetime.datetime.now()
         messageDiscord(newLiveStreams)
 
 def compare(oldStreams, newStreams):
@@ -81,7 +83,10 @@ def compare(oldStreams, newStreams):
 def getUsernames(streamData):
     s = set()
     for stream in streamData:
-        s.add(streams.getUsername(stream['user_id']))
+        try:
+            s.add(streams.getUsername(stream['user_id']))
+        except KeyError:
+            print('error getting username')
     return s
 
 t = Thread(target=getStreams, daemon=True)
