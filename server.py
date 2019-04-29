@@ -59,7 +59,7 @@ def messageDiscord(newStreams):
         if stream.strip() == "":
             continue
         msg  = "{stream} is now live!\nhttp://twitch.tv/{stream}".format(stream = stream)
-        #requests.post(discordURL, json = {"content": msg})
+        requests.post(discordURL, json = {"content": msg})
 def getStreams():
     global oldStreams, lastUpdated
     oldStreams = streams.getLive(streams.getFollows())
