@@ -6,6 +6,7 @@ from threading import Thread
 from time import sleep
 import requests
 import datetime
+import sys
 app = Flask(__name__)
 
 
@@ -58,22 +59,29 @@ def messageDiscord(newStreams):
         if stream.strip() == "":
             continue
         msg  = "{stream} is now live!\nhttp://twitch.tv/{stream}".format(stream = stream)
-        requests.post(discordURL, json = {"content": msg})
+        #requests.post(discordURL, json = {"content": msg})
 def getStreams():
     global oldStreams, lastUpdated
     oldStreams = streams.getLive(streams.getFollows())
     lastUpdated = datetime.datetime.now()
     while True:
-        sleep(sleepTime)
         try:
-            newStreams = streams.getLive(streams.getFollows())
+            sleep(sleepTime)
+            try:
+                newStreams = streams.getLive(streams.getFollows())
+            except Exception:
+                print('Error getting new streams')
+                print(sys.exc_info()[0])
+                print(sys.exc_info()[1])
+                newStreams = oldStreams
+            newLiveStreams = compare(oldStreams, newStreams)
+            oldStreams = newStreams
+            lastUpdated = datetime.datetime.now()
+            messageDiscord(newLiveStreams)
         except Exception:
-            print('error getting new streams')
-            newStreams = oldStreams
-        newLiveStreams = compare(oldStreams, newStreams)
-        oldStreams = newStreams
-        lastUpdated = datetime.datetime.now()
-        messageDiscord(newLiveStreams)
+            print('Unknown Error')
+            print(sys.exc_info()[0])
+            print(sys.exc_info()[1])
 
 def compare(oldStreams, newStreams):
     o = getUsernames(oldStreams)
@@ -86,7 +94,10 @@ def getUsernames(streamData):
         try:
             s.add(streams.getUsername(stream['user_id']))
         except KeyError:
-            print('error getting username')
+            print('Error getting username')
+            print(sys.exc_info()[0])
+            print(sys.exc_info()[1])
+            s.add(stream['user_name'])
     return s
 
 t = Thread(target=getStreams, daemon=True)
